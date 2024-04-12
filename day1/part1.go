@@ -1,38 +1,18 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"os"
-	"strconv"
-	"strings"
 	"unicode"
 )
 
-func getInput(fileName string) string {
-	// opening the file
+func getInput(fileName string) (*os.File, error) {
 	file, err := os.Open(fileName)
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		return nil, err
 	}
-	// closing the file after the termination of the program
-	defer file.Close()
-	fileInfo, err := file.Stat()
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-	fileSize := fileInfo.Size()
-	// make buffer based on the size of the file
-	buffer := make([]byte, fileSize)
-
-	// put the file into the buffer
-	_, err = file.Read(buffer)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-	return string(buffer)
+	return file, nil
 }
 
 func parseLine(line string) (*int, error) {
@@ -53,8 +33,8 @@ func parseLine(line string) (*int, error) {
 		}
 	}
 	// converting the first character into an integer
-	first_num, _ := strconv.Atoi(string(first))
-	second_num, _ := strconv.Atoi(string(second))
+	first_num := int(first - '0')
+	second_num := int(second - '0')
 
 	// doing the formula first_num
 	result := first_num*10 + second_num
@@ -63,7 +43,15 @@ func parseLine(line string) (*int, error) {
 
 func main() {
 	final_result := 0
-	for _, line := range strings.Split(getInput("input.txt"), "\n") {
+	file, err := getInput("input.txt")
+	if err != nil {
+		return
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := scanner.Text()
 		result, err := parseLine(line)
 		if err != nil {
 			continue
