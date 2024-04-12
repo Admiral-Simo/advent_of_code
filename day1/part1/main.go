@@ -43,7 +43,7 @@ func parseLine(line string) (*int, error) {
 
 func main() {
 	final_result := 0
-	file, err := getInput("input.txt")
+	file, err := getInput("../input.txt")
 	if err != nil {
 		return
 	}
