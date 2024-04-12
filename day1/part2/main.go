@@ -1,62 +1,112 @@
 package main
 
 import (
-	"bufio"
+	"context"
 	"fmt"
 	"os"
-	"unicode"
+	"strings"
 )
 
-func getInput(fileName string) (*os.File, error) {
-	file, err := os.Open(fileName)
-	if err != nil {
-		return nil, err
-	}
-	return file, nil
+type Data struct {
+	Lines []string
 }
 
-func parseLine(line string) (*int, error) {
-	// the first and second digit -> "1ksldjhfkshjdfkjshdfjkh89" first = 1 & second = 9
-	var first rune
-	var second rune
-	// looping into each character `char` in the `line`
-	for _, char := range line {
-		// checking if the current `char` is a digit
-		if unicode.IsDigit(char) {
-			// if `first` digit is uninitialized then assign `first` with `char`
-			if first == 0 {
-				first = char
-			}
-			// each time we find a character `char` which is a digit just assign it to second
-			// then the second becomes the last `digit` in the line
-			second = char
-		}
+func parse(fileName string) (*Data, error) {
+	buf, err := os.ReadFile(fileName)
+	if err != nil {
+		return nil, fmt.Errorf("read input file: %w", err)
 	}
-	// converting the first character into an integer
-	first_num := int(first - '0')
-	second_num := int(second - '0')
+	d := &Data{}
+	lines := strings.Split(string(buf), "\n")
+	for _, line := range lines {
+		if line == "" {
+			continue
+		}
+		d.Lines = append(d.Lines, line)
+	}
+	return d, nil
+}
 
-	// doing the formula first_num
-	result := first_num*10 + second_num
-	return &result, nil
+func run(_ context.Context) error {
+	d, err := parse("../input.txt")
+	if err != nil {
+		return fmt.Errorf("parse: %w", err)
+	}
+
+	part1Tokens := map[string]int{
+		"1": 1,
+		"2": 2,
+		"3": 3,
+		"4": 4,
+		"5": 5,
+		"6": 6,
+		"7": 7,
+		"8": 8,
+		"9": 9,
+	}
+	_ = part1Tokens
+	part2Tokens := map[string]int{
+		"one":   1,
+		"two":   2,
+		"three": 3,
+		"four":  4,
+		"five":  5,
+		"six":   6,
+		"seven": 7,
+		"eight": 8,
+		"nine":  9,
+		"1":     1,
+		"2":     2,
+		"3":     3,
+		"4":     4,
+		"5":     5,
+		"6":     6,
+		"7":     7,
+		"8":     8,
+		"9":     9,
+	}
+	_ = part2Tokens
+
+	tokens := part2Tokens
+
+	total := 0
+	for _, line := range d.Lines {
+		var left, right int
+	subloop:
+		for i := 0; i < len(line); i++ {
+			for tok, n := range tokens {
+				if i+len(tok) > len(line) {
+					continue
+				}
+				if line[i:i+len(tok)] == tok {
+					left = n
+					break subloop
+				}
+			}
+		}
+
+	subloop2:
+		for i := len(line) - 1; i >= 0; i-- {
+			for tok, n := range tokens {
+				if i-len(tok)+1 < 0 {
+					continue
+				}
+				if line[i-len(tok)+1:i+1] == tok {
+					right = n
+					break subloop2
+				}
+			}
+		}
+		total += left*10 + right
+	}
+	fmt.Printf("%d\n", total)
+	return nil
 }
 
 func main() {
-	final_result := 0
-	file, err := getInput("../input.txt")
-	if err != nil {
+	if err := run(context.Background()); err != nil {
+		println("Fail:", err.Error())
 		return
 	}
-	defer file.Close()
-
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		line := scanner.Text()
-		result, err := parseLine(line)
-		if err != nil {
-			continue
-		}
-		final_result += *result
-	}
-	fmt.Println("result:", final_result)
+	println("success")
 }
